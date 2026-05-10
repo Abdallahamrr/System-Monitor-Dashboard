@@ -10,7 +10,7 @@ services:
       - ./logs:/app/logs
       - /proc:/host-proc:ro
       - /:/host-root:ro
-      - /mnt/d/OS_Project/collector:/app/collector
+      - ./collector:/app/collector
     command: bash -c "chmod +x /app/collector/*.sh && while true; do /app/collector/system_collector.sh; sleep 3; done"
   web_server:
     image: python:3.12-slim

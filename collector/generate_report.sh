@@ -6,7 +6,7 @@ REPORT_FILE="/app/logs/dashboard.html"
 # --- 1. Get last line for live dashboard ---
 LAST_LINE=$(tail -n 1 "$LOG_FILE")
 
-TIME_STAMP=$(echo "$LAST_LINE" | cut -d'|' -f1)
+TIME_STAMP=$(echo "$LAST_LINE" | cut -d'|' -f1 | sed 's/\[WIN\] //' | sed 's/\[NIX\] //')
 CPU_VAL=$(echo "$LAST_LINE" | sed -n 's/.*CPU: \([0-9.]*\).*/\1/p')
 TEMP_VAL=$(echo "$LAST_LINE" | sed -n 's/.*Temp: \([0-9.]*\).*/\1/p')
 GPU_VAL=$(echo "$LAST_LINE" | sed -n 's/.*GPU: \([0-9.]*\).*/\1/p')
@@ -35,36 +35,124 @@ cat << EOF > "$REPORT_FILE"
 <meta charset="UTF-8">
 <meta http-equiv="refresh" content="3">
 <style>
-body { font-family: sans-serif; background: #0f172a; color: #e5e7eb; padding: 20px; text-align: center; }
-.card { background: #1e293b; padding: 15px; border-radius: 12px; margin: 10px auto; width: 400px; text-align: left; }
-.bar { background: #334155; border-radius: 10px; height: 18px; width: 100%; margin-top:5px; }
-.fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
-.value { float: right; font-weight: bold; }
-button { padding: 10px 20px; background-color: #2563eb; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 20px; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #1a1a2e 100%);
+    color: #e5e7eb;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+h2 {
+    color: #e5e7eb;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+.card {
+    background: rgba(30, 41, 59, 0.3);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.metric-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+.bar {
+    background: #334155;
+    border-radius: 20px;
+    height: 20px;
+    width: 100%;
+    margin-top: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.8s ease;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+.value {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+button {
+    padding: 12px 24px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 <body>
-<h2>🖥️ System Monitor</h2>
+<h2>🖥️ System Monitor Dashboard</h2>
 
 <!-- Print Report Button -->
-<button id="printBtn">🖨️ Print Report</button>
+<button id="printBtn">📊 Generate Report</button>
 
+<div class="container">
 <!-- Live Dashboard Cards -->
-<div class="card" style="text-align:center; color:#94a3b8;" id="timestamp">$TIME_STAMP</div>
-<div class="card">CPU Load: <span class="value" id="cpu-value">${CPU_VAL}%</span>
-  <div class="bar"><div class="fill" id="cpu-bar" style="background:${CPU_COL}; width: ${CPU_VAL}%;"></div></div>
+<div class="card">
+    <div class="metric-icon">🕒</div>
+    <div id="timestamp">$TIME_STAMP</div>
 </div>
-<div class="card">CPU Temp: <span class="value" id="temp-value">${TEMP_VAL}°C</span>
-  <div class="bar"><div class="fill" id="temp-bar" style="background:${TEMP_COL}; width: ${TEMP_VAL}%;"></div></div>
+<div class="card">
+    <div class="metric-icon">🖥️</div>
+    CPU Load: <span class="value" id="cpu-value">${CPU_VAL}%</span>
+    <div class="bar"><div class="fill" id="cpu-bar" style="width: ${CPU_VAL}%; background: $CPU_COL;"></div></div>
 </div>
-<div class="card">GPU Load: <span class="value" id="gpu-value">${GPU_VAL}%</span>
-  <div class="bar"><div class="fill" id="gpu-bar" style="background:${GPU_COL}; width: ${GPU_VAL}%;"></div></div>
+<div class="card">
+    <div class="metric-icon">🌡️</div>
+    CPU Temp: <span class="value" id="temp-value">${TEMP_VAL}°C</span>
+    <div class="bar"><div class="fill" id="temp-bar" style="width: ${TEMP_VAL}%; background: $TEMP_COL;"></div></div>
 </div>
-<div class="card">Memory: <span class="value" id="mem-value">${MEM_VAL}%</span>
-  <div class="bar"><div class="fill" id="mem-bar" style="background:${MEM_COL}; width: ${MEM_VAL}%;"></div></div>
+<div class="card">
+    <div class="metric-icon">🎮</div>
+    GPU Load: <span class="value" id="gpu-value">${GPU_VAL}%</span>
+    <div class="bar"><div class="fill" id="gpu-bar" style="width: ${GPU_VAL}%; background: $GPU_COL;"></div></div>
 </div>
-<div class="card">Disk: <span class="value" id="dsk-value">${DSK_VAL}%</span>
-  <div class="bar"><div class="fill" id="dsk-bar" style="background:${DSK_COL}; width: ${DSK_VAL}%;"></div></div>
+<div class="card">
+    <div class="metric-icon">💾</div>
+    Memory: <span class="value" id="mem-value">${MEM_VAL}%</span>
+    <div class="bar"><div class="fill" id="mem-bar" style="width: ${MEM_VAL}%; background: $MEM_COL;"></div></div>
+</div>
+<div class="card">
+    <div class="metric-icon">💿</div>
+    Disk: <span class="value" id="dsk-value">${DSK_VAL}%</span>
+    <div class="bar"><div class="fill" id="dsk-bar" style="width: ${DSK_VAL}%; background: $DSK_COL;"></div></div>
+</div>
 </div>
 
 <!-- JS for dynamic Print Report -->
