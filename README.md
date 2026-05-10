@@ -28,7 +28,7 @@ A real-time system monitoring tool that collects hardware metrics (CPU, memory, 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/system-monitor-dashboard.git
+   git clone https://github.com/yourusername/System-Monitor-Dashboard.git
    cd system-monitor-dashboard
    ```
 
