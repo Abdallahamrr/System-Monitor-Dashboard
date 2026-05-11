@@ -52,7 +52,7 @@ A real-time system monitoring tool that collects hardware metrics (CPU, memory, 
 
 ## Technologies Used
 
-- Docker & Docker Compose
+- Docker & Docker Composee
 - Bash scripting
 - HTML/CSS/JavaScript
 - Prometheus exporters
